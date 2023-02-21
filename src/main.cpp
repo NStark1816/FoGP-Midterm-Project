@@ -20,8 +20,8 @@ Mix_Chunk *hitSound = nullptr;
 TTF_Font *gameFont = nullptr;
 
 float inputDirectionX = 0.0f;
-float inputDirectionY = 0.0f;
-float movementSpeed = 2.0f;
+
+float PaddleMovementSpeed = 2.0f;
 
 float ballXVel = 1.0f;
 float ballYVel = 1.0f;
@@ -91,7 +91,7 @@ int main(int argc, char* args[])
             SDL_BlitSurface(backGroundImage, NULL, backBuffer, NULL);
 
             // draw the image
-            paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * movementSpeed)) : -(paddleRect.w/2.0f) + 1;
+            paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
             paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
 
             /*
@@ -154,7 +154,6 @@ bool ProgramIsRunning()
 {
     SDL_Event event;
     inputDirectionX = 0.0f;
-    inputDirectionY = 0.0f;
 
     // input buffer
     const Uint8* keys = SDL_GetKeyboardState(NULL);
@@ -164,12 +163,6 @@ bool ProgramIsRunning()
     
     if (keys[SDL_SCANCODE_RIGHT])
         inputDirectionX = 1.0f;
-    
-    if (keys[SDL_SCANCODE_UP])
-        inputDirectionY = -1.0f;
-    
-    if (keys[SDL_SCANCODE_DOWN])
-        inputDirectionY = 1.0f;
 
     while (SDL_PollEvent(&event))
     {
