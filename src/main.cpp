@@ -25,7 +25,7 @@ float paddleMovementSpeed = 2.0f;
 
 float ballXVel = 1.0f;
 float ballYVel = 1.0f;
-float ballMovementSpeed = 0.0f;
+float ballMovementSpeed = 10.0f;
 
 SDL_Rect ballRect;
 SDL_Rect paddleRect;
@@ -60,16 +60,28 @@ int main(int argc, char* args[])
     paddleRect.h = 20;
 
     // place bottom wall rect
-    bottomWallRect.x = 0
-    bottomWallRect.y = SCREEN_HEIGHT;
+    bottomWallRect.x = 0;
+    bottomWallRect.y = SCREEN_HEIGHT - 1;
     bottomWallRect.w = SCREEN_WIDTH;
     bottomWallRect.h = 1;
 
     // place top wall rect
-    topWallRect.x = 0
-    toopWallRect.y = 0;
+    topWallRect.x = 0;
+    topWallRect.y = 0;
     topWallRect.w = SCREEN_WIDTH;
     topWallRect.h = 1;
+
+    // place left wall rect
+    leftWallRect.x = 0;
+    leftWallRect.y = 0;
+    leftWallRect.w = 1;
+    leftWallRect.h = SCREEN_HEIGHT;
+
+    // place right wall rect
+    rightWallRect.x = SCREEN_WIDTH - 1;
+    rightWallRect.y = 0;
+    rightWallRect.w = 1;
+    rightWallRect.h = SCREEN_HEIGHT;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
@@ -111,6 +123,14 @@ int main(int argc, char* args[])
             // reset the back buffer with the back ground
             SDL_BlitSurface(backGroundImage, NULL, backBuffer, NULL);
 
+            /*
+            // Test walls through coloring
+            SDL_FillRect(backBuffer, &topWallRect, 255);
+            SDL_FillRect(backBuffer, &leftWallRect, 255);
+            SDL_FillRect(backBuffer, &bottomWallRect, 255);
+            SDL_FillRect(backBuffer, &rightWallRect, 255);
+            */
+
             // move the paddle
             paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
             paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
@@ -122,6 +142,16 @@ int main(int argc, char* args[])
 
             ballRect.y = (ballRect.y + (ballRect.h/2.0f) < SCREEN_HEIGHT) ? (ballRect.y + (ballYVel * ballMovementSpeed)) : -(ballRect.h/2.0f) + 1;
             ballRect.y = (ballRect.y > -(ballRect.h/2.0f)) ? ballRect.y : SCREEN_HEIGHT - (ballRect.h/2.0f) - 1;
+
+            // check for ball collisions
+            if(RectsOverlap(ballRect, bottomWallRect))
+
+            if(RectsOverlap(ballRect, topWallRect))
+                ballYVel = -1.0f;
+            if(RectsOverlap(ballRect, leftWallRect))
+                ballXVel = 1.0f;
+            if(RectsOverlap(ballRect, rightWallRect))
+                ballXVel = -1.0f;
             
             //draw the image
             DrawImage(sprite, backBuffer, ballRect.x, ballRect.y);
@@ -291,6 +321,12 @@ void FreeFiles()
     {
         Mix_FreeChunk(hitSound);
         hitSound = nullptr;
+    }
+
+    if(backGroundMusic != nullptr)
+    {
+        Mix_FreeMusic(backGroundMusic);
+        backGroundMusic = nullptr;
     }
 }
 
