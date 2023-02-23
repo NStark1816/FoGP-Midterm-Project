@@ -16,19 +16,23 @@ SDL_Surface *backGroundImage = nullptr;
 SDL_Surface *backBuffer = nullptr;
 
 Mix_Chunk *hitSound = nullptr;
+Mix_Music *backGroundMusic = nullptr;
 
 TTF_Font *gameFont = nullptr;
 
 float inputDirectionX = 0.0f;
-
-float PaddleMovementSpeed = 2.0f;
+float paddleMovementSpeed = 2.0f;
 
 float ballXVel = 1.0f;
 float ballYVel = 1.0f;
-float ballMovementSpeed = 10.0f;
+float ballMovementSpeed = 0.0f;
 
 SDL_Rect ballRect;
 SDL_Rect paddleRect;
+SDL_Rect bottomWallRect;
+SDL_Rect topWallRect;
+SDL_Rect leftWallRect;
+SDL_Rect rightWallRect;
 
 bool LoadFiles();
 void FreeFiles();
@@ -43,15 +47,29 @@ int main(int argc, char* args[])
 {
     std::cout << "Hello World" << std::endl;
 
+    // place ball
     ballRect.x = 0;
-    ballRect.y = 250;
+    ballRect.y = 0;
     ballRect.w = 20;
     ballRect.h = 20;
 
+    // place paddle
     paddleRect.x = SCREEN_WIDTH / 2;
     paddleRect.y = SCREEN_HEIGHT - 100;
-    paddleRect.h = 20;
     paddleRect.w = 60;
+    paddleRect.h = 20;
+
+    // place bottom wall rect
+    bottomWallRect.x = 0
+    bottomWallRect.y = SCREEN_HEIGHT;
+    bottomWallRect.w = SCREEN_WIDTH;
+    bottomWallRect.h = 1;
+
+    // place top wall rect
+    topWallRect.x = 0
+    toopWallRect.y = 0;
+    topWallRect.w = SCREEN_WIDTH;
+    topWallRect.h = 1;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
@@ -82,7 +100,10 @@ int main(int argc, char* args[])
     if (LoadFiles()) {
 
         // play sound
-        Mix_PlayChannel(-1, hitSound, -1);
+        // Mix_PlayChannel(-1, hitSound, 0);
+
+        // play music
+        Mix_PlayMusic(backGroundMusic, -1);
         while(ProgramIsRunning())
         {
             // get the time at the start of the frame
@@ -90,18 +111,19 @@ int main(int argc, char* args[])
             // reset the back buffer with the back ground
             SDL_BlitSurface(backGroundImage, NULL, backBuffer, NULL);
 
-            // draw the image
+            // move the paddle
             paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
             paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
 
-            /*
-            ballRect.x = (ballRect.x + (ballRect.w/2.0f) < SCREEN_WIDTH) ? (ballRect.x + (inputDirectionX * movementSpeed)) : -(ballRect.w/2.0f) + 1;
+            
+            // move the ball
+            ballRect.x = (ballRect.x + (ballRect.w/2.0f) < SCREEN_WIDTH) ? (ballRect.x + (ballXVel * ballMovementSpeed)) : -(ballRect.w/2.0f) + 1;
             ballRect.x = (ballRect.x > -(ballRect.w/2.0f)) ? ballRect.x : SCREEN_WIDTH - (ballRect.w/2.0f) - 1;
 
-            ballRect.y = (ballRect.y + (ballRect.h/2.0f) < SCREEN_HEIGHT) ? (ballRect.y + (inputDirectionY * movementSpeed)) : -(ballRect.h/2.0f) + 1;
+            ballRect.y = (ballRect.y + (ballRect.h/2.0f) < SCREEN_HEIGHT) ? (ballRect.y + (ballYVel * ballMovementSpeed)) : -(ballRect.h/2.0f) + 1;
             ballRect.y = (ballRect.y > -(ballRect.h/2.0f)) ? ballRect.y : SCREEN_HEIGHT - (ballRect.h/2.0f) - 1;
-            */
-
+            
+            //draw the image
             DrawImage(sprite, backBuffer, ballRect.x, ballRect.y);
             DrawImage(paddleSprite, backBuffer, paddleRect.x, paddleRect.y);
 
@@ -233,6 +255,12 @@ bool LoadFiles()
     hitSound = Mix_LoadWAV("assets\\sounds\\JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav");
 
     if(hitSound == nullptr)
+        return false;
+
+    // load music
+    backGroundMusic = Mix_LoadMUS( "assets\\sounds\\JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav" );
+
+    if( backGroundMusic == nullptr )
         return false;
 
     return true;
