@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <stdlib.h>
+#include <time.h>
 
 const int FPS = 30;
 const int FRAME_DELAY = 1000/FPS;
@@ -24,17 +26,17 @@ TTF_Font *gameFont = nullptr;
 float inputDirectionX = 0.0f;
 float paddleMovementSpeed = 10.0f;
 
-float ballXDirection = 1.0f;
+float ballXDirection = 0.5f;
 float ballYDirection = 1.0f;
 
-float ballXVel = 1.0f;
-float ballYVel = 1.0f;
-float ballMovementSpeed = 5.0f;
+float ballMovementSpeed = 0.0f;
 
 unsigned int score = 0;
 unsigned int highScore = 0;
 unsigned int startTime = 0;
 
+bool gameStarted = false;
+bool autoPlay = false;
 bool hasCollidedTop = false;
 bool hasCollidedLeft = false;
 bool hasCollidedRight = false;
@@ -59,9 +61,12 @@ void ResetRects();
 
 int main(int argc, char* args[])
 {
+
+    srand(time(NULL));
+
     // place ball
-    ballRect.x = 0;
-    ballRect.y = 0;
+    ballRect.x = SCREEN_WIDTH/2;
+    ballRect.y = SCREEN_HEIGHT/2;
     ballRect.w = 20;
     ballRect.h = 20;
 
@@ -131,8 +136,10 @@ int main(int argc, char* args[])
 
         while(ProgramIsRunning())
         {
-            // get the time at the start of the frame
+            
+           // get the time at the start of the frame
             int frameStart = SDL_GetTicks();
+
             // reset the back buffer with the back ground
             SDL_BlitSurface(backGroundImage, NULL, backBuffer, NULL);
 
@@ -145,10 +152,22 @@ int main(int argc, char* args[])
             */
 
             // move the paddle
-            paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
-            paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
+            if(autoPlay == false)
+            {
+                paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
+                paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
+            } else
+            {
+                if((paddleRect.x + (paddleRect.w / 2.0f)) < ballRect.x)
+                {
+                    paddleRect.x = paddleRect.x + (1 * paddleMovementSpeed);
 
-            ResetRects();
+                } else if((paddleRect.x + (paddleRect.w / 2.0f)) > ballRect.x)
+                {
+                    paddleRect.x = paddleRect.x + (-1 * paddleMovementSpeed);
+                }
+                
+            }
 
             // move the ball
             ballRect.x = ballRect.x + (ballXDirection * ballMovementSpeed);
@@ -167,7 +186,9 @@ int main(int argc, char* args[])
             BallCollisionCheck(ballRect);
 
             // font
-            score = SDL_GetTicks() - startTime;
+            if(gameStarted == true)
+                score = SDL_GetTicks() - startTime;
+
             DrawText(backBuffer, (std::to_string(score)).c_str(), 100, 100, gameFont, 255u, 255u, 255u);
             DrawText(backBuffer, (std::to_string(highScore)).c_str(), 400, 100, gameFont, 255u, 255u, 255u);
 
@@ -227,6 +248,37 @@ bool ProgramIsRunning()
     if (keys[SDL_SCANCODE_RIGHT])
         inputDirectionX = 1.0f;
 
+    if (keys[SDL_SCANCODE_SPACE])
+    {
+        if(gameStarted == false)
+        {
+            autoPlay = false;
+            gameStarted = true;
+            ballMovementSpeed = 5.0f;
+            if((rand()%2) == 1)
+                ballXDirection *= -1.0f;
+            if((rand()%2) == 1)
+                ballYDirection *= -1.0f;
+            startTime = SDL_GetTicks();
+        }
+    }
+
+    if (keys[SDL_SCANCODE_A])
+    {
+        if(gameStarted == false)
+        {
+            autoPlay = true;
+            gameStarted = true;
+            ballMovementSpeed = 5.0f;
+            if((rand()%2) == 1)
+                ballXDirection *= -1.0f;
+            if((rand()%2) == 1)
+                ballYDirection *= -1.0f;
+            startTime = SDL_GetTicks();
+        }
+    }
+
+    
     while (SDL_PollEvent(&event))
     {
         if (event.type == SDL_QUIT)
@@ -241,6 +293,7 @@ bool ProgramIsRunning()
             float x = event.motion.x;
             float y = event.motion.y;
         }
+        
     }
     
     return true;
@@ -316,6 +369,12 @@ void FreeFiles()
         sprite = nullptr;
     }
 
+    if(paddleSprite != nullptr)
+    {
+        SDL_FreeSurface(paddleSprite);
+        paddleSprite = nullptr;
+    }
+
     if(backGroundImage != nullptr)
     {
         SDL_FreeSurface(backGroundImage);
@@ -388,10 +447,13 @@ void BallCollisionCheck(SDL_Rect rect1)
         paddleRect.x = SCREEN_WIDTH / 2;
         paddleRect.y = SCREEN_HEIGHT - 50;
 
-        ballRect.x = 2;
-        ballRect.y = 2;
-        ballXDirection = 0.5;
-        ballMovementSpeed = 5.0f;
+        ballRect.x = SCREEN_WIDTH/2;
+        ballRect.y = SCREEN_HEIGHT/2;
+        ballXDirection = 0.5f;
+        ballYDirection = 1.0f;
+        ballMovementSpeed = 0.0f;
+        gameStarted = false;
+        autoPlay = false;
 
         if(highScore < score)
             highScore = score;
