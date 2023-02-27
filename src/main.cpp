@@ -128,8 +128,7 @@ int main(int argc, char* args[])
     
     if (LoadFiles()) {
 
-        // play sound
-        // Mix_PlayChannel(-1, hitSound, 0);
+        
 
         // play music
         Mix_PlayMusic(backGroundMusic, -1);
@@ -154,17 +153,23 @@ int main(int argc, char* args[])
             // move the paddle
             if(autoPlay == false)
             {
-                paddleRect.x = (paddleRect.x + (paddleRect.w/2.0f) < SCREEN_WIDTH) ? (paddleRect.x + (inputDirectionX * paddleMovementSpeed)) : -(paddleRect.w/2.0f) + 1;
-                paddleRect.x = (paddleRect.x > -(paddleRect.w/2.0f)) ? paddleRect.x : SCREEN_WIDTH - (paddleRect.w/2.0f) - 1;
+                if(inputDirectionX == 1.0f && paddleRect.x < (SCREEN_WIDTH - paddleRect.w)){
+                    paddleRect.x = (paddleRect.x + (inputDirectionX * paddleMovementSpeed));
+                } else if(inputDirectionX == -1.0f && paddleRect.x > 0){
+                    paddleRect.x = (paddleRect.x + (inputDirectionX * paddleMovementSpeed));
+                }
+
             } else
             {
                 if((paddleRect.x + (paddleRect.w / 2.0f)) < ballRect.x)
                 {
-                    paddleRect.x = paddleRect.x + (1 * paddleMovementSpeed);
+                    if(paddleRect.x < (SCREEN_WIDTH - paddleRect.w))
+                        paddleRect.x = paddleRect.x + (1 * paddleMovementSpeed);
 
                 } else if((paddleRect.x + (paddleRect.w / 2.0f)) > ballRect.x)
                 {
-                    paddleRect.x = paddleRect.x + (-1 * paddleMovementSpeed);
+                    if(paddleRect.x > 0)
+                        paddleRect.x = paddleRect.x + (-1 * paddleMovementSpeed);
                 }
                 
             }
@@ -189,8 +194,8 @@ int main(int argc, char* args[])
             if(gameStarted == true)
                 score = SDL_GetTicks() - startTime;
 
-            DrawText(backBuffer, (std::to_string(score)).c_str(), 100, 100, gameFont, 255u, 255u, 255u);
-            DrawText(backBuffer, (std::to_string(highScore)).c_str(), 400, 100, gameFont, 255u, 255u, 255u);
+            DrawText(backBuffer, (std::to_string(score)).c_str(), 40, 40, gameFont, 0u, 0u, 0u);
+            DrawText(backBuffer, (std::to_string(highScore)).c_str(), 450, 40, gameFont, 0u, 0u, 0u);
 
             // end draw frame
             SDL_UpdateWindowSurface(window);
@@ -329,7 +334,7 @@ void DrawImageFrame(SDL_Surface* image, SDL_Surface* destSurface,
 bool LoadFiles()
 {
     // load images
-    backGroundImage = LoadImage("assets/graphics/grid_background.bmp");
+    backGroundImage = LoadImage("assets/graphics/Underwater BG Blank.bmp");
     sprite = LoadImage("assets/graphics/ball.bmp");
     paddleSprite = LoadImage("assets/graphics/paddle.bmp");
 
@@ -346,13 +351,13 @@ bool LoadFiles()
         return false;
 
     // load sounds
-    hitSound = Mix_LoadWAV("assets\\sounds\\JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav");
+    hitSound = Mix_LoadWAV("assets\\sounds\\click_sound_1.mp3");
 
     if(hitSound == nullptr)
         return false;
 
     // load music
-    backGroundMusic = Mix_LoadMUS( "assets\\sounds\\JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav" );
+    backGroundMusic = Mix_LoadMUS( "assets\\sounds\\Black Diamond.mp3" );
 
     if( backGroundMusic == nullptr )
         return false;
@@ -464,7 +469,11 @@ void BallCollisionCheck(SDL_Rect rect1)
     if(RectsOverlap(rect1, topWallRect))
     {
         if(hasCollidedTop == false)
+        {
             ballYDirection = ballYDirection * (-1.0f);
+            // play sound
+            Mix_PlayChannel(-1, hitSound, 0);
+        }
         hasCollidedTop = true;
     } else
     {
@@ -474,7 +483,11 @@ void BallCollisionCheck(SDL_Rect rect1)
     if(RectsOverlap(rect1, leftWallRect))
     {
         if(hasCollidedLeft == false)
+        {
             ballXDirection = ballXDirection * (-1.0f);
+            // play sound
+            Mix_PlayChannel(-1, hitSound, 0);
+        }
         hasCollidedLeft = true;
     } else
     {
@@ -484,7 +497,11 @@ void BallCollisionCheck(SDL_Rect rect1)
     if(RectsOverlap(rect1, rightWallRect))
     {
         if(hasCollidedRight == false)
+        {
             ballXDirection = ballXDirection * (-1.0f);
+            // play sound
+            Mix_PlayChannel(-1, hitSound, 0);
+        }
         hasCollidedRight = true;
     } else
     {
@@ -502,6 +519,8 @@ void BallCollisionCheck(SDL_Rect rect1)
         {
             ballMovementSpeed += 0.1f;
         }
+        // play sound
+        Mix_PlayChannel(-1, hitSound, 0);
     }
 }
 void ResetRects()
