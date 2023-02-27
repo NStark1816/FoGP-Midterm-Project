@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>
 #include <iostream>
 #include <stdio.h>
+#include <string>
 
 const int FPS = 30;
 const int FRAME_DELAY = 1000/FPS;
@@ -103,7 +104,7 @@ int main(int argc, char* args[])
 
     // create window
     window = SDL_CreateWindow(
-        "Black Art of Multiplatform Game Programming!",
+        "Single Player Pong!",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         SCREEN_WIDTH,
@@ -154,12 +155,14 @@ int main(int argc, char* args[])
              // check for ball collisions
             BallCollisionCheck(ballRect);
 
+            
+
             // font
-            DrawText(backBuffer, "Demo", 100, 100, gameFont, 255u, 255u, 255u);
+            DrawText(backBuffer, (std::to_string(SDL_GetTicks())).c_str(), 100, 100, gameFont, 255u, 255u, 255u);
 
             // end draw frame
             SDL_UpdateWindowSurface(window);
-            
+
             // find the number of milliseconds 
             int frameTime = SDL_GetTicks() - frameStart;
 
