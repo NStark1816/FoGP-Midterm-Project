@@ -29,7 +29,15 @@ float ballYDirection = 1.0f;
 
 float ballXVel = 1.0f;
 float ballYVel = 1.0f;
-float ballMovementSpeed = 7.0f;
+float ballMovementSpeed = 5.0f;
+
+unsigned int score = 0;
+unsigned int highScore = 0;
+unsigned int startTime = 0;
+
+bool hasCollidedTop = false;
+bool hasCollidedLeft = false;
+bool hasCollidedRight = false;
 
 SDL_Rect ballRect;
 SDL_Rect paddleRect;
@@ -61,30 +69,30 @@ int main(int argc, char* args[])
     paddleRect.x = SCREEN_WIDTH / 2;
     paddleRect.y = SCREEN_HEIGHT - 50;
     paddleRect.w = 60;
-    paddleRect.h = 20;
+    paddleRect.h = 3;
 
     // place bottom wall rect
     bottomWallRect.x = 0;
     bottomWallRect.y = SCREEN_HEIGHT - 1;
     bottomWallRect.w = SCREEN_WIDTH;
-    bottomWallRect.h = 3;
+    bottomWallRect.h = 20;
 
     // place top wall rect
     topWallRect.x = 0;
-    topWallRect.y = 0;
+    topWallRect.y = -18;
     topWallRect.w = SCREEN_WIDTH;
-    topWallRect.h = 3;
+    topWallRect.h = 20;
 
     // place left wall rect
-    leftWallRect.x = 0;
+    leftWallRect.x = -18;
     leftWallRect.y = 0;
-    leftWallRect.w = 3;
+    leftWallRect.w = 20;
     leftWallRect.h = SCREEN_HEIGHT;
 
     // place right wall rect
-    rightWallRect.x = SCREEN_WIDTH - 1;
+    rightWallRect.x = SCREEN_WIDTH - 2;
     rightWallRect.y = 0;
-    rightWallRect.w = 3;
+    rightWallRect.w = 20;
     rightWallRect.h = SCREEN_HEIGHT;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
@@ -120,6 +128,7 @@ int main(int argc, char* args[])
 
         // play music
         Mix_PlayMusic(backGroundMusic, -1);
+
         while(ProgramIsRunning())
         {
             // get the time at the start of the frame
@@ -142,11 +151,13 @@ int main(int argc, char* args[])
             ResetRects();
 
             // move the ball
-            ballRect.x = (ballRect.x + (ballRect.w/2.0f) < SCREEN_WIDTH) ? (ballRect.x + (ballXDirection * ballMovementSpeed)) : -(ballRect.w/2.0f) + 1;
-            ballRect.x = (ballRect.x > -(ballRect.w/2.0f)) ? ballRect.x : SCREEN_WIDTH - (ballRect.w/2.0f) - 1;
+            ballRect.x = ballRect.x + (ballXDirection * ballMovementSpeed);
+            //ballRect.x = (ballRect.x + (ballRect.w/2.0f) < SCREEN_WIDTH) ? (ballRect.x + (ballXDirection * ballMovementSpeed)) : -(ballRect.w/2.0f) + 1;
+            //ballRect.x = (ballRect.x > -(ballRect.w/2.0f)) ? ballRect.x : SCREEN_WIDTH - (ballRect.w/2.0f) - 1;
 
-            ballRect.y = (ballRect.y + (ballRect.h/2.0f) < SCREEN_HEIGHT) ? (ballRect.y + (ballYDirection * ballMovementSpeed)) : -(ballRect.h/2.0f) + 1;
-            ballRect.y = (ballRect.y > -(ballRect.h/2.0f)) ? ballRect.y : SCREEN_HEIGHT - (ballRect.h/2.0f) - 1;
+            ballRect.y = ballRect.y + (ballYDirection * ballMovementSpeed);
+            //ballRect.y = (ballRect.y + (ballRect.h/2.0f) < SCREEN_HEIGHT) ? (ballRect.y + (ballYDirection * ballMovementSpeed)) : -(ballRect.h/2.0f) + 1;
+            //ballRect.y = (ballRect.y > -(ballRect.h/2.0f)) ? ballRect.y : SCREEN_HEIGHT - (ballRect.h/2.0f) - 1;
             
             //draw the image
             DrawImage(sprite, backBuffer, ballRect.x, ballRect.y);
@@ -155,10 +166,10 @@ int main(int argc, char* args[])
              // check for ball collisions
             BallCollisionCheck(ballRect);
 
-            
-
             // font
-            DrawText(backBuffer, (std::to_string(SDL_GetTicks())).c_str(), 100, 100, gameFont, 255u, 255u, 255u);
+            score = SDL_GetTicks() - startTime;
+            DrawText(backBuffer, (std::to_string(score)).c_str(), 100, 100, gameFont, 255u, 255u, 255u);
+            DrawText(backBuffer, (std::to_string(highScore)).c_str(), 400, 100, gameFont, 255u, 255u, 255u);
 
             // end draw frame
             SDL_UpdateWindowSurface(window);
@@ -368,66 +379,98 @@ bool RectsOverlap(SDL_Rect rect1, SDL_Rect rect2)
     return true;
 }
 
+// check for ball collisions
 void BallCollisionCheck(SDL_Rect rect1)
 {
-    // check for ball collisions
+    
     if(RectsOverlap(rect1, bottomWallRect))
     {
-        ballYDirection = -1.0f;
+        paddleRect.x = SCREEN_WIDTH / 2;
+        paddleRect.y = SCREEN_HEIGHT - 50;
+
+        ballRect.x = 2;
+        ballRect.y = 2;
+        ballXDirection = 0.5;
+        ballMovementSpeed = 5.0f;
+
+        if(highScore < score)
+            highScore = score;
+        score = 0;
+        startTime = SDL_GetTicks();
     }
 
     if(RectsOverlap(rect1, topWallRect))
-        ballYDirection = ballYDirection * (-1.0f);
+    {
+        if(hasCollidedTop == false)
+            ballYDirection = ballYDirection * (-1.0f);
+        hasCollidedTop = true;
+    } else
+    {
+        hasCollidedTop = false;
+    }
+
     if(RectsOverlap(rect1, leftWallRect))
-        ballXDirection = ballXDirection * (-1.0f);
+    {
+        if(hasCollidedLeft == false)
+            ballXDirection = ballXDirection * (-1.0f);
+        hasCollidedLeft = true;
+    } else
+    {
+        hasCollidedLeft = false;
+    }
+
     if(RectsOverlap(rect1, rightWallRect))
-        ballXDirection = ballXDirection * (-1.0f);
+    {
+        if(hasCollidedRight == false)
+            ballXDirection = ballXDirection * (-1.0f);
+        hasCollidedRight = true;
+    } else
+    {
+        hasCollidedRight = false;
+    }
 
     if(RectsOverlap(rect1, paddleRect))
     {
-        // basic test physics
-        /*
-        if ((rect1.x - paddleRect.x) < 30)
-        {
-            ballXDirection = -1;
-        } 
-        else 
-        {
-            ballXDirection = 1;
-        }
-        */
-
         ballXDirection = ((rect1.x - paddleRect.x) / 30.0f) - 0.8f;
         ballYDirection = -1.0f ;
-        ballMovementSpeed += 1.0f;
+        if(ballMovementSpeed < 15.0f)
+        {
+            ballMovementSpeed += 1.0f;
+        } else
+        {
+            ballMovementSpeed += 0.1f;
+        }
     }
 }
 void ResetRects()
 {
+    ballRect.w = 20;
+    ballRect.h = 20;
+
+    paddleRect.w = 60;
+    paddleRect.h = 3;
+
     // place bottom wall rect
     bottomWallRect.x = 0;
     bottomWallRect.y = SCREEN_HEIGHT - 1;
     bottomWallRect.w = SCREEN_WIDTH;
-    bottomWallRect.h = 3;
+    bottomWallRect.h = 20;
 
     // place top wall rect
     topWallRect.x = 0;
-    topWallRect.y = 0;
+    topWallRect.y = -18;
     topWallRect.w = SCREEN_WIDTH;
-    topWallRect.h = 3;
+    topWallRect.h = 20;
 
     // place left wall rect
-    leftWallRect.x = 0;
+    leftWallRect.x = -18;
     leftWallRect.y = 0;
-    leftWallRect.w = 3;
+    leftWallRect.w = 20;
     leftWallRect.h = SCREEN_HEIGHT;
 
     // place right wall rect
-    rightWallRect.x = SCREEN_WIDTH - 1;
+    rightWallRect.x = SCREEN_WIDTH - 2;
     rightWallRect.y = 0;
-    rightWallRect.w = 3;
+    rightWallRect.w = 20;
     rightWallRect.h = SCREEN_HEIGHT;
-
-    ballRect.w = 20;
-    ballRect.h = 20;
 }
