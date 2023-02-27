@@ -6,5 +6,3 @@ Created by:
 Press space to launch the ball
 
 Press a instead for autoplay
-
-test
